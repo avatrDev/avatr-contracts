@@ -123,7 +123,7 @@ contract AvtarMakoNFT is ERC721, ERC721URIStorage, ERC721Pausable, Ownable {
 
         for (uint8 i = 1; i <= 3; i++) {
             stages[i].stageId = i;
-            stages[i].totalSupply = i == 1 ? 5100 : i == 2 ? 7600 : 10100;
+            stages[i].totalSupply = i == 1 ? 5000 : i == 2 ? 8500 : 10100;
             stages[i].packages[1] = package(1, 149000000);
             stages[i].packages[2] = package(2, 249000000);
             stages[i].packages[3] = package(3, 349000000);
