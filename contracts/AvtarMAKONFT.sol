@@ -175,12 +175,13 @@ function commonChecks(address to) private view {
     }
     
     function setStage(uint8 round) public virtual onlyOwner {
-        require(round > currentStage,"Can not update stage right now please check your input.");     
-        currentStage = round;
+        require(round > currentStage,"Can not update stage right now please check your input."); 
+        stages[currentStage].totalSupply = totalMint;
+       currentStage = round;
     }
 
     function setServer(address _server) public virtual onlyOwner {
-        require(_server != address(0),"Contract can't be added null"); 
+        require(_server != address(0),"Contract can not be added null"); 
         serverAddress = _server;
     }
     
@@ -211,8 +212,6 @@ function commonChecks(address to) private view {
     }
 
     function getPrice(uint8 NftStage, uint8 packageType) public view returns(uint256) {
-        // uint8 decimal = ContractToken(ContractTokenContractAddress).decimals();
-        // return  (stages[NftStage].packages[packageType].price * (10 ** uint256(decimal))) + nftFees;
         return  (stages[NftStage].packages[packageType].price) + nftFees;
     }
 
@@ -277,9 +276,6 @@ function commonChecks(address to) private view {
         return string(abi.encodePacked(super.tokenURI(1), uint2str(tokenId), '.json'));
     }
 
-    // function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
-    //     super._burn(tokenId);
-    // }
 
     function tokensOfOwner(address tokenOwnerAddress) public view returns(uint) {
         return nftHolder[tokenOwnerAddress].id;
@@ -289,7 +285,7 @@ function commonChecks(address to) private view {
         return nfts[tokenId].packageType;
     }
 
-    function safeTransferFrom(address from, address to, uint256 tokenId ) public virtual override(ERC721, IERC721) {
+    function safeTransferFrom(address from, address to, uint256 tokenId ) public virtual override(ERC721,IERC721)  {
         safeTransferFrom(from, to, tokenId, "");
     }
 
