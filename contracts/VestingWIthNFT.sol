@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
  import "@openzeppelin/contracts/utils/math/SafeMath.sol";
  import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
- import "hardhat/console.sol";
+ 
  import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /**
@@ -39,7 +39,7 @@ contract Vesting is Context, ReentrancyGuard {
     uint256 public vestInterval;
 
     uint256 public totalVestingAmount;
-
+    address public adminAddress;
     struct Allocation {
         // amount allocated for given beneficiary
         // Virtually divided into two parts - timeLock and vest
@@ -70,9 +70,10 @@ contract Vesting is Context, ReentrancyGuard {
         uint256 _vestInterval,
         address _nftContract 
     ) {
-        require(_token != address(0), "t oken address cannot be zero");
+        require(_token != address(0), "token address cannot be zero");
         require(_vestInterval > 0, "interval should be greater than 0");
         require(_vestDuration > _vestInterval, "duration should be greater than interval");
+        require(vestDuration % vestInterval == 0 ,"Vest Duration is not divisable with vest interval");
         require(_lockBps + _vestBps == 10000, "sum of Lock and Vest bps should be 10000");
         require(_lockClaimTime > _getCurrentBlockTime(), "lockClaimTime should be in the future");
         require(_vestStart >= _lockClaimTime, "vestStart earlier than lockClaimTime");
@@ -84,13 +85,24 @@ contract Vesting is Context, ReentrancyGuard {
         vestDuration = _vestDuration;
         vestInterval = _vestInterval;
         nftContract = IERC721(_nftContract);
+        adminAddress = msg.sender;
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == adminAddress, "only admin can use");
+        _;
+    }
+
+    function setAdminAddress(address _adminAddress) public virtual onlyAdmin() {
+         require(_adminAddress != address(0), "admin address cannot be zero");
+        adminAddress = _adminAddress;
     }
 
     /**
      * @dev submit multiple records of beneficiaries and their allocations in one transaction
      *
      **/
-    function setAllocations(uint256[] memory _nftIds, uint256[] memory _amounts) external nonReentrant {
+    function setAllocations(uint256[] memory _nftIds, uint256[] memory _amounts) external nonReentrant onlyAdmin() {
         require(_nftIds.length == _amounts.length, "Input arrays must be of the same length");
         uint256 totalAmount = 0;
         for (uint256 i = 0; i < _nftIds.length; i++) {
@@ -109,7 +121,7 @@ contract Vesting is Context, ReentrancyGuard {
     /**
      * 
      **/
-     function setAllocation(uint256 nftId, uint256 amount) external nonReentrant {
+     function setAllocation(uint256 nftId, uint256 amount) external nonReentrant onlyAdmin() {
         address beneficiary = nftContract.ownerOf(nftId); // Get the owner of the NFT
 
         require(allocations[nftId].amount == 0, "Already allocated");
@@ -134,14 +146,14 @@ contract Vesting is Context, ReentrancyGuard {
         require(beneficiary == msg.sender, "Only the NFT owner can release tokens");
 
         (   uint256 _amount,
-            uint256 _lockAmount,
-            uint256 _vestAmount,
+            ,
+            ,
             uint256 _released,
-            uint256 _lockReleased,
-            uint256 _vestReleased,
-            uint256 _unfrozen,
-            uint256 _lockUnfrozen,
-            uint256 _vestUnfrozen,
+            ,
+            ,
+            ,
+            ,
+            ,
             uint256 _releasable,
             uint256 _lockReleasable,
             uint256 _vestReleasable
@@ -149,13 +161,7 @@ contract Vesting is Context, ReentrancyGuard {
 
         require(_released < _amount, "Amount already released");
         require(_releasable > 0, "Nothing to release yet");
-        console.log('_lockAmount',_lockAmount);
-        console.log('_vestAmount',_vestAmount);
-        console.log('_lockReleased',_lockReleased);
-        console.log('_vestReleased',_vestReleased);
-        console.log('_unfrozen',_unfrozen);
-        console.log('_lockUnfrozen',_lockUnfrozen);
-        console.log('_vestUnfrozen',_vestUnfrozen);
+       
         if (_lockReleasable > 0) {
             updateAllocationPlus(nftId,_lockReleasable);
             emit LockRelease(beneficiary, _lockReleasable);

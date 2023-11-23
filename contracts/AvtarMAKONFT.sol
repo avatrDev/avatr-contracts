@@ -207,10 +207,6 @@ function commonChecks(address to) private view {
         createNFT(to, packageType);
     }
 
-    function safeMintUSDC(address to, uint8 packageType) public virtual onlyVerifiedUser validateMinting(to, packageType) {       
-        ContractToken(ContractTokenContractAddress).safeTransferFrom(msg.sender, TreasuryAddress, getPrice(currentStage,packageType));
-        createNFT(to, packageType);
-    }
 
     function getPrice(uint8 NftStage, uint8 packageType) public view returns(uint256) {
         return  (stages[NftStage].packages[packageType].price) + nftFees;
