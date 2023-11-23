@@ -167,15 +167,16 @@ function commonChecks(address to) private view {
     }
 
     modifier validateMinting(address to, uint8 packageType) {
+        require(packageType == 1 || packageType == 2 || packageType == 3, "Invalid package type");
         require(TreasuryAddress != address(0), "Token contract address not added");
         require(ContractTokenContractAddress != address(0), "Token contract address not added");
-        require(ContractToken(ContractTokenContractAddress).balanceOf(msg.sender) >= getPrice(currentStage, packageType), "Amount is not sufficient for mint.");
+        require(ContractToken(ContractTokenContractAddress).balanceOf(to) >= getPrice(currentStage, packageType), "Amount is not sufficient for mint.");
         commonChecks(to);
         _;
     }
     
     function setStage(uint8 round) public virtual onlyOwner {
-        require(round > currentStage,"Can not update stage right now please check your input."); 
+        require(round > currentStage && round < 4,"Can not update stage right now please check your input."); 
         stages[currentStage].totalSupply = totalMint;
        currentStage = round;
     }
@@ -187,7 +188,7 @@ function commonChecks(address to) private view {
     
     // Set config Contract Addresses
     function setConfigAddresses(address _treasuryAddress, address _verifyAddress,address _contractUsdcAddress ) public virtual onlyOwner{
-        require(_treasuryAddress != address(0) || _verifyAddress != address(0),"Contract can't be added null"); 
+        require(_treasuryAddress != address(0) && _verifyAddress != address(0) &&  _contractUsdcAddress != address(0),"Contract can't be added null"); 
         TreasuryAddress = _treasuryAddress;          
         ContractTokenContractAddress = _contractUsdcAddress; 
         VerifiedUserContractAddress = _verifyAddress;
@@ -222,9 +223,7 @@ function commonChecks(address to) private view {
         _safeMint(to, tokenId);
         nftHolder[to].isPurchased = true;
         nftHolder[to].id = tokenId;
-        nftHolder[to].nftType = nftType;
-        nftHolder[to].nftStage = currentStage;
-        nftHolder[to].packageType = packageType;
+      
         nfts[tokenId].nftStage = currentStage;
         nfts[tokenId].id = tokenId;
         nfts[tokenId].avatrAddress = to;
@@ -241,7 +240,7 @@ function commonChecks(address to) private view {
         return super._update(to, tokenId, auth);
     }
 
-    function setTokenURI(string memory uri) public virtual  {       
+    function setTokenURI(string memory uri) public virtual onlyOwner {       
         _setTokenURI(1, uri);
     } 
 
@@ -290,19 +289,20 @@ function commonChecks(address to) private view {
     }
 
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual override(ERC721,IERC721)  {        
-        require(super.ownerOf(tokenId) == _msgSender(),"ERC721: caller is not token owner");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
         require(super.balanceOf(to) == 0, "Already have NFT on recipient address");        
         super._safeTransfer(from, to, tokenId, data);
         nftHolder[from].id = 0;
-        nftHolder[from].nftType = 0;
-        nftHolder[from].nftStage = 0;
-        nftHolder[from].packageType = 0;
-
-        nftHolder[to].id = tokenId;
+        nftHolder[to].id = tokenId;        
         nfts[tokenId].avatrAddress = to;
     }
 
     function transferFrom(address from, address to, uint256 tokenId) public virtual override(ERC721,IERC721) {
         safeTransferFrom(from, to, tokenId, "");
+    }
+
+    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
+        address owner = super.ownerOf(tokenId);
+        return (spender == owner || super.isApprovedForAll(owner, spender) || super.getApproved(tokenId) == spender);
     }
 }
