@@ -110,6 +110,7 @@ contract Vesting is Context, ReentrancyGuard {
             uint256 amount = _amounts[i];
             address beneficiary = nftContract.ownerOf(nftId); // Get the owner of the NFT
             require(allocations[nftId].amount == 0, "Already allocated");
+            require(allocations[nftId].released == 0, "Already released");
             allocations[nftId].amount = amount;
             emit Allocate(beneficiary, amount);
             totalAmount += amount;
