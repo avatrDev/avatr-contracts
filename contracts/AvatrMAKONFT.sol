@@ -162,7 +162,7 @@ function commonChecks(address to) private view {
         require(ContractTokenContractAddress != address(0), "Token contract address not added");     
     }
 
-    modifier onlyServer(address to, uint8 packageType) {
+    modifier onlyServer(address to) {
         require(msg.sender == serverAddress, "This method is only for server use");
         commonChecks(to);
         _;
@@ -200,7 +200,7 @@ function commonChecks(address to) private view {
         isPublicMint = _isPublicMint;
     }
 
-    function safeMintForServer(address to, uint8 packageType) public virtual onlyServer(to, packageType) {
+    function safeMintForServer(address to, uint8 packageType) public virtual onlyServer(to) {
         createNFT(to, packageType);
     }
 
