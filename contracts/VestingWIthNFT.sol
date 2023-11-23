@@ -21,24 +21,24 @@ contract Vesting is Context, ReentrancyGuard {
     event VestRelease(address beneficiary, uint256 amount);
     event Allocate(address beneficiary, uint256 amount);
 
-    IERC20 public token;
+    IERC20 public  token;
 
     // relative values of how much allocated funds are locked by timeLock and vesting
     // expressed in 1/10000 basis points. The total should be 10000 (100%)
-    uint256 public lockBps;
-    uint256 public vestBps;
+    uint256 public immutable lockBps;
+    uint256 public immutable vestBps;
 
     // the moment when time-locked amount becomes available for claiming
-    uint256 public lockClaimTime;
+    uint256 public immutable lockClaimTime;
 
     // vesting parameters
-    uint256 public vestStart; // the moment of gradual unlocking of vest funds
-    uint256 public vestDuration; // the total timespan of vesting
+    uint256 public immutable vestStart; // the moment of gradual unlocking of vest funds
+    uint256 public immutable vestDuration; // the total timespan of vesting
     // receipt of funds tied to intervals. If user claimed in current interval,
     // he can't claim funds again before interval expired
-    uint256 public vestInterval;
+    uint256 public immutable vestInterval;
 
-    uint256 public totalVestingAmount;
+    uint256 public immutable totalVestingAmount;
     address public adminAddress;
     struct Allocation {
         // amount allocated for given beneficiary

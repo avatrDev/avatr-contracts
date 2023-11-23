@@ -95,12 +95,12 @@ contract AvatrMakoNFT is ERC721, ERC721URIStorage, ERC721Pausable, Ownable {
     mapping(address => NFT) private nftHolder;
     address public serverAddress;
     
-    uint8 public nftType;
-    uint256 public totalSupply;
+    uint8 public immutable nftType;
+    uint256 public immutable totalSupply;
     
-    uint256 public nftFees;
+    uint256 public immutable nftFees;
     uint public totalMint;
-    address public previousTypeContractAddress;
+    address public immutable previousTypeContractAddress;
 
     uint256 private _tokenIdCounter = 0;
 
