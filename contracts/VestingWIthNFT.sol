@@ -73,7 +73,7 @@ contract Vesting is Context, ReentrancyGuard {
         require(_token != address(0), "token address cannot be zero");
         require(_vestInterval > 0, "interval should be greater than 0");
         require(_vestDuration > _vestInterval, "duration should be greater than interval");
-        require(vestDuration % vestInterval == 0 ,"Vest Duration is not divisable with vest interval");
+         require(vestDuration % vestInterval == 0 ,"Vest Duration is not divisable with vest interval");
         require(_lockBps + _vestBps == 10000, "sum of Lock and Vest bps should be 10000");
         require(_lockClaimTime > _getCurrentBlockTime(), "lockClaimTime should be in the future");
         require(_vestStart >= _lockClaimTime, "vestStart earlier than lockClaimTime");
@@ -104,6 +104,7 @@ contract Vesting is Context, ReentrancyGuard {
      **/
     function setAllocations(uint256[] memory _nftIds, uint256[] memory _amounts) external nonReentrant onlyAdmin() {
         require(_nftIds.length == _amounts.length, "Input arrays must be of the same length");
+        require(_nftIds.length <= 100, "Input arrays must be less then 100");
         uint256 totalAmount = 0;
         for (uint256 i = 0; i < _nftIds.length; i++) {
             uint256 nftId = _nftIds[i];
