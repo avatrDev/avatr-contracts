@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 
   /***********************************|
@@ -57,7 +58,7 @@ interface previousNFTContract {
 }
 
 
-contract AvatrMakoNFT is ERC721, ERC721URIStorage, ERC721Pausable, Ownable {
+contract AvatrMakoNFT is ERC721, ERC721URIStorage, ERC721Pausable, Ownable, ReentrancyGuard {
     
 
   /***********************************|
@@ -200,11 +201,11 @@ function commonChecks(address to) private view {
         isPublicMint = _isPublicMint;
     }
 
-    function safeMintForServer(address to, uint8 packageType) public virtual onlyServer(to) {
+    function safeMintForServer(address to, uint8 packageType) public virtual onlyServer(to) nonReentrant {
         createNFT(to, packageType);
     }
 
-    function safeMint(address to, uint8 packageType) public virtual onlyVerifiedUser validateMinting(to, packageType) {        
+    function safeMint(address to, uint8 packageType) public virtual onlyVerifiedUser validateMinting(to, packageType) nonReentrant {        
         ContractToken(ContractTokenContractAddress).transferFrom(to, TreasuryAddress, getPrice(currentStage,packageType));
         createNFT(to, packageType);
     }
@@ -286,7 +287,7 @@ function commonChecks(address to) private view {
         safeTransferFrom(from, to, tokenId, "");
     }
 
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual override(ERC721,IERC721)  {        
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual  override(ERC721,IERC721) nonReentrant {        
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
         require(super.balanceOf(to) == 0, "Already have NFT on recipient address");        
         super._safeTransfer(from, to, tokenId, data);
