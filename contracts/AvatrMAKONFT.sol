@@ -289,7 +289,7 @@ function commonChecks(address to) private view {
 
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual  override(ERC721,IERC721) nonReentrant {        
         require(from != address(0), "from address can not zero address");
-        require(to != address(0), "from address can not zero address");
+        require(to != address(0), "to address can not zero address");
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
         require(super.balanceOf(to) == 0, "Already have NFT on recipient address");        
         super._safeTransfer(from, to, tokenId, data);
