@@ -1,4 +1,4 @@
-# Contributing to Project Avatr
+# Contributing to Avatr
 
 First off, thank you for considering contributing to this project. It's people like you that make it such a great tool.
 
