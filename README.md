@@ -34,7 +34,7 @@ To use this project, you can clone the repository and modify it according to you
 
 ## Contributing
 
-Contributions are welcome! Please follow the guidelines outlined in the CONTRIBUTING.md file.
+Contributions are welcome! Please follow the guidelines outlined in the [CONTRIBUTING.md](./CONTRIBUTING.md) file.
 
 ## License
 
