@@ -10,6 +10,23 @@ rewarded, not traditional third parties such as agencies, job boards, and advert
 
 checkout the  [whitepaper](https://avatrdapp.org/wp-content/uploads/2024/01/Avatr-Whitepaper.pdf). for read more. 
 
+## WHAT IS THE AVATR NFT?
+
+Avatr Exclusive Membership
+There are 2 types of NFTs when it comes to the Avatr platform, so let’s define them:
+
+Fractionalized NFTs are what construct an Avatr on the system. This happens when the DApp goes live and the system usage commences.
+Avatr Membership NFT is a singular NFT that is owned by you with the express purpose of obtaining benefits and utilities in Avatr as a project member with VIP status.
+
+[Read More](https://avatrdapp.org/what-is-the-avatr-nft/).
+
+
+## TALNT Token
+
+TLNT is our dynamic token with a myriad of utilities, serving as both a governance and utility token within the TLNT blockchain ecosystem. The TLNT token is instrumental in blockchain governance, enabling the establishment of a peer-to-peer (P2P) business model between employers and candidates. It is used to pay for application fees and rewards, facilitating seamless transactions and interactions within the TLNT platform.
+
+[Read More](https://avatrdapp.org/what-is-tlnt/).
+
 
 ## Usage
 
