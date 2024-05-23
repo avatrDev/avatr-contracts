@@ -42,4 +42,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Code of Conduct
 
-Please read and adhere to our Code of Conduct before participating in our project. See the CODE_OF_CONDUCT.md file for details.
+Please read and adhere to our Code of Conduct before participating in our project. See the [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) file for details.
