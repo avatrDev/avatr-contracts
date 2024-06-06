@@ -5,7 +5,6 @@ pragma solidity ^0.8.0;
  import "@openzeppelin/contracts/utils/math/SafeMath.sol";
  import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
- import "hardhat/console.sol";
  import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /**
@@ -49,6 +48,9 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
 
     mapping(address => Allocation) public allocations;
 
+    uint256 public constant MAX_ALLOCATIONS_PER_TX = 100;
+
+
     /**
      * @dev common parameters are given through constructor.
      * @param _token ERC-20 token that gets allocated
@@ -88,16 +90,27 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
      * @param _allocations ABI-encoded array of beneficiaries and amounts
      **/
     function setAllocations(bytes[] memory _allocations) external nonReentrant {
-        uint256 totalAmount;
+    
+    require(_allocations.length <= MAX_ALLOCATIONS_PER_TX, "Too many allocations");
+
+    uint256 totalAmount;
+    address beneficiary;
+    uint256 amount;
+
         for (uint256 i = 0; i < _allocations.length; i++) {
-            (address beneficiary, uint256 amount) = abi.decode(_allocations[i], (address, uint256));
+            (beneficiary, amount) = abi.decode(_allocations[i], (address, uint256));
+            
+            require(beneficiary != address(0), "Beneficiary is the zero address");
+
+            Allocation storage alloc = allocations[beneficiary];
+            require(alloc.amount == 0, "Already allocated");
+            require(alloc.released == 0, "Already released");
+
+            alloc.amount = amount;
             totalAmount += amount;
-            require(allocations[beneficiary].amount == 0, "Already allocated");
-            require(allocations[beneficiary].released == 0, "Already released");
-            allocations[beneficiary].amount = amount;
             emit Allocate(beneficiary, amount);
         }
-        totalVestingAmount = totalVestingAmount + totalAmount;
+        totalVestingAmount += totalAmount;
         token.safeTransferFrom(_msgSender(), address(this), totalAmount);
     }
 
@@ -107,6 +120,7 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
      * @param beneficiary amount
      **/
     function setAllocation(address beneficiary, uint256 amount) external nonReentrant {
+        require(beneficiary != address(0), "Beneficiary is the zero address");
         require(allocations[beneficiary].amount == 0, "Already allocated");
         require(allocations[beneficiary].released == 0, "Already released");
         allocations[beneficiary].amount = amount;
@@ -120,15 +134,16 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
      * @param beneficiary account to whom tokens were allocated
      **/
     function release(address beneficiary) external nonReentrant {
-        (   uint256 _amount,
-            uint256 _lockAmount,
-            uint256 _vestAmount,
+        require(beneficiary != address(0), "Beneficiary is the zero address");
+        (  uint256 _amount,
+            ,
+            ,
             uint256 _released,
-            uint256 _lockReleased,
-            uint256 _vestReleased,
-            uint256 _unfrozen,
-            uint256 _lockUnfrozen,
-            uint256 _vestUnfrozen,
+            ,
+            ,
+            ,
+            ,
+            ,
             uint256 _releasable,
             uint256 _lockReleasable,
             uint256 _vestReleasable
@@ -136,13 +151,7 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
 
         require(_released < _amount, "Amount already released");
         require(_releasable > 0, "Nothing to release yet");
-        console.log('_lockAmount',_lockAmount);
-        console.log('_vestAmount',_vestAmount);
-        console.log('_lockReleased',_lockReleased);
-        console.log('_vestReleased',_vestReleased);
-        console.log('_unfrozen',_unfrozen);
-        console.log('_lockUnfrozen',_lockUnfrozen);
-        console.log('_vestUnfrozen',_vestUnfrozen);
+       
         if (_lockReleasable > 0) {
             allocations[beneficiary].released += _lockReleasable;
             emit LockRelease(beneficiary, _lockReleasable);
@@ -180,15 +189,13 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
     {
         amount = allocations[beneficiary].amount;
         lockAmount = (amount * lockBps) / 10000;
-        vestAmount = (amount * vestBps) / 10000;
+        vestAmount = amount - lockAmount;
 
         released = allocations[beneficiary].released;
 
         if (released >= lockAmount) {
             lockReleased = lockAmount;
-            if (released > lockReleased) {
-                vestReleased = released - lockReleased;
-            }
+            vestReleased = released - lockReleased;
         }
 
         lockUnfrozen = getLockUnfrozen(lockAmount);
@@ -226,13 +233,14 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
      **/
     function getVestUnfrozen(uint256 vestAmount) public view returns (uint256) {
         uint256 vestEnd = vestStart + vestDuration;
-        if (_getCurrentBlockTime() <= vestStart) {
+        uint256 currentTime = _getCurrentBlockTime();
+        if (currentTime <= vestStart) {
             return 0;
         }
-        if (_getCurrentBlockTime() >= vestEnd) {
+        if (currentTime >= vestEnd) {
             return vestAmount;
         }
-        uint256 passedInvervals = (_getCurrentBlockTime() - vestStart) / vestInterval;
+        uint256 passedInvervals = (currentTime - vestStart) / vestInterval;
         uint256 totalIntervals = vestDuration / vestInterval;
         uint256 vestUnfrozenAmount = (vestAmount * passedInvervals) / totalIntervals;
         return vestUnfrozenAmount;
