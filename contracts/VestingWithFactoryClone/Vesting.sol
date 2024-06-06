@@ -7,6 +7,18 @@ pragma solidity ^0.8.0;
  import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
  import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
+
+
+/**
+Interface for Verified User
+*/
+interface verifiedUser {
+    function isUserVerified(address userAddresss) external view returns(bool);
+    function URI_SETTER_ROLE() external view returns(bytes32);
+    function DEFAULT_ADMIN_ROLE() external view returns(bytes32);
+    function hasRole(bytes32 role, address account) external view returns (bool);
+}
+
 /**
  * @title Vesting and timelock contract
  * @dev Keeps tokens allocated for beneficiaries and releases them over time.
@@ -50,6 +62,7 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
 
     uint256 public constant MAX_ALLOCATIONS_PER_TX = 100;
 
+    address VerifiedUserContractAddress = address(0);
 
     /**
      * @dev common parameters are given through constructor.
@@ -68,7 +81,8 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
         uint256 _lockClaimTime,
         uint256 _vestStart,
         uint256 _vestDuration,
-        uint256 _vestInterval
+        uint256 _vestInterval,
+        address _verifiedUserContractAddress
     ) public initializer {
         require(_token != address(0), "token address cannot be zero");
         require(_vestInterval > 0, "interval should be greater than 0");
@@ -83,13 +97,26 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
         vestStart = _vestStart;
         vestDuration = _vestDuration;
         vestInterval = _vestInterval;
+        VerifiedUserContractAddress = _verifiedUserContractAddress;
+    }
+
+
+    modifier onlyAdminUser() {
+            require(verifiedUser(VerifiedUserContractAddress).hasRole(verifiedUser(VerifiedUserContractAddress).DEFAULT_ADMIN_ROLE(),msg.sender), "Please admin allowed");
+        _;
+    }
+
+     // Set verifiedUser Contract Addresses
+    function setVerifiedUserContractAddress(address _verifyAddress) public virtual onlyAdminUser{
+        require(_verifyAddress != address(0),"Contract can't be added null"); 
+        VerifiedUserContractAddress = _verifyAddress;
     }
 
     /**
      * @dev submit multiple records of beneficiaries and their allocations in one transaction
      * @param _allocations ABI-encoded array of beneficiaries and amounts
      **/
-    function setAllocations(bytes[] memory _allocations) external nonReentrant {
+    function setAllocations(bytes[] memory _allocations) external nonReentrant onlyAdminUser {
     
     require(_allocations.length <= MAX_ALLOCATIONS_PER_TX, "Too many allocations");
 
@@ -119,7 +146,7 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
      * @param beneficiary address of holder
      * @param beneficiary amount
      **/
-    function setAllocation(address beneficiary, uint256 amount) external nonReentrant {
+    function setAllocation(address beneficiary, uint256 amount) external nonReentrant onlyAdminUser {
         require(beneficiary != address(0), "Beneficiary is the zero address");
         require(allocations[beneficiary].amount == 0, "Already allocated");
         require(allocations[beneficiary].released == 0, "Already released");
