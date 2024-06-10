@@ -90,6 +90,7 @@ contract Vesting is Initializable, Context, ReentrancyGuard {
         require(_lockBps + _vestBps == 10000, "sum of Lock and Vest bps should be 10000");
         require(_lockClaimTime > _getCurrentBlockTime(), "lockClaimTime should be in the future");
         require(_vestStart >= _lockClaimTime, "vestStart earlier than lockClaimTime");
+        require(_verifiedUserContractAddress != address(0),"Contract can't be added null"); 
         token = IERC20(_token);
         lockBps = _lockBps;
         vestBps = _vestBps;

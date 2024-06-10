@@ -17,6 +17,7 @@ contract FactoryVestingClone {
     address VerifiedUserContractAddress = address(0);
 
     constructor(address _verifiedUserContractAddress) {
+        require(_verifiedUserContractAddress != address(0),"Contract can't be added null"); 
         vestingImplementation = address(new Vesting());
         VerifiedUserContractAddress = _verifiedUserContractAddress;
     }
